@@ -5,4 +5,4 @@
 *.jpg
 *.pyc
 *.tex
-
+*.ipynb_checkpoints/*
