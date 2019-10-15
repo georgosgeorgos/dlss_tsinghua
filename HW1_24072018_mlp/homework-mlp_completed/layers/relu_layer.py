@@ -7,7 +7,7 @@ class ReLULayer:
     def __init__(self):
         """Applies the rectified linear unit function element-wise :math:`{ReLU}(x)= max(0, x)`
         """
-        self.trainable = False 
+        self.trainable = False
 
     def forward(self, Input):
         # TODO: Put your code here

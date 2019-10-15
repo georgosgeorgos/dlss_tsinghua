@@ -12,9 +12,9 @@ class FCLayer:
              init_std: std of weight initializer
              trainable: whether if this layer is trainable.
         """
-        self.num_input  = num_input
+        self.num_input = num_input
         self.num_output = num_output
-        self.trainable  = trainable
+        self.trainable = trainable
 
         self.W = np.random.normal(0, init_std, (num_output, num_input))
         self.b = np.random.normal(0, init_std, (num_output, 1))
@@ -25,14 +25,14 @@ class FCLayer:
     def forward(self, Input):
         # TODO: Put your code here
         # Please delete `pass` and return the output
-        output     = np.dot(Input, self.W.T) + self.b.T
+        output = np.dot(Input, self.W.T) + self.b.T
         self.cache = Input
         return output
 
     def backward(self, delta):  # delta has been calculated in the last layer
         # TODO: Put your code here
         # Please delete `pass`, calculate delta, self.grad_W, self.grad_b and return delta
-        delta_l     = np.dot(delta, self.W)
+        delta_l = np.dot(delta, self.W)
         self.grad_W = np.dot(delta.T, self.cache)
-        self.grad_b = np.sum(delta, axis = 0, keepdims=True).T
+        self.grad_b = np.sum(delta, axis=0, keepdims=True).T
         return delta_l

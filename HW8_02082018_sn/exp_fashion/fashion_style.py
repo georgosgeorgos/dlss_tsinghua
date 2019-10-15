@@ -10,7 +10,7 @@ import os
 
 
 # Log level setting. (No need to modify.)
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 tf.logging.set_verbosity(tf.logging.ERROR)
 
 # GPU memory configuration. (Do not modify.)
@@ -20,27 +20,27 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.2
 
 
 # Path of csv data.
-FASHION_TRAIN = '../data/fashion_train.csv'
-FASHION_TEST = '../data/fashion_test.csv'
+FASHION_TRAIN = "../data/fashion_train.csv"
+FASHION_TEST = "../data/fashion_test.csv"
 
 # Dimension of features and labels.
 NUM_FEATURES = 137
 NUM_LABELS = 2
 
 # Load data from csv files.
-fashion_train = np.genfromtxt(FASHION_TRAIN, delimiter=',')
-fashion_test = np.genfromtxt(FASHION_TEST, delimiter=',')
-print('Original data shape:', fashion_train.shape, fashion_test.shape)
+fashion_train = np.genfromtxt(FASHION_TRAIN, delimiter=",")
+fashion_test = np.genfromtxt(FASHION_TEST, delimiter=",")
+print("Original data shape:", fashion_train.shape, fashion_test.shape)
 
 # Split into feature and label matrix.
 train_features, train_labels = fashion_train[:, :NUM_FEATURES], fashion_train[:, NUM_FEATURES:]
 test_features, test_labels = fashion_test[:, :NUM_FEATURES], fashion_test[:, NUM_FEATURES:]
-print('Training set size:', train_features.shape, train_labels.shape)
-print('Test set size:', test_features.shape, test_labels.shape)
+print("Training set size:", train_features.shape, train_labels.shape)
+print("Test set size:", test_features.shape, test_labels.shape)
 
 # Combine train_features and test_features into ae_features.
 ae_features = np.concatenate((train_features, test_features))
-print('AE set size:', ae_features.shape)
+print("AE set size:", ae_features.shape)
 
 
 # Training parameters to be adjusted.
@@ -99,7 +99,7 @@ with graph.as_default():
 with tf.Session(graph=graph, config=config) as session:
     # Initialize the variables.
     tf.global_variables_initializer().run()
-    print('Initialized')
+    print("Initialized")
 
     # Autoencoder training process.
     for step in range(num_steps):
@@ -107,31 +107,31 @@ with tf.Session(graph=graph, config=config) as session:
         offset = (step * batch_size) % (ae_features.shape[0] - batch_size)
 
         # Generate a minibatch.
-        batch_data = ae_features[offset:(offset + batch_size), :]
+        batch_data = ae_features[offset : (offset + batch_size), :]
 
         # Prepare a dictionary telling the session where to feed the minibatch.
-        feed_dict = {tf_train_features : batch_data}
+        feed_dict = {tf_train_features: batch_data}
 
         # Run the session and get the loss.
         _, l = session.run([optimizer, loss], feed_dict=feed_dict)
 
         # Print the loss every 500 steps.
         if step % 500 == 0:
-            print('Minibatch loss at step %d: %.4f' % (step, l))
+            print("Minibatch loss at step %d: %.4f" % (step, l))
 
     # TODO : 6. Change train_features and test_features from numpy arrays to tensorflow constants. (5%)
     # Hint : use tf.constant(...); pay attention to "dtype" and "shape" parameters
-    train_features = tf.constant(train_features, dtype=tf.float32) 
-    test_features  = tf.constant(test_features, dtype=tf.float32)
+    train_features = tf.constant(train_features, dtype=tf.float32)
+    test_features = tf.constant(test_features, dtype=tf.float32)
 
     # TODO : 7. Calculate the middle layer representation of train/test features. (5%)
     # Hint : use tf.sigmoid(...) and tf.matmul(...); use encoder layers' weights/biases; add ".eval()" at the end of the expressions
-    encoder_train      = tf.sigmoid(tf.matmul(train_features, encoder_w1) + encoder_b1).eval()
+    encoder_train = tf.sigmoid(tf.matmul(train_features, encoder_w1) + encoder_b1).eval()
     train_features_new = tf.sigmoid(tf.matmul(encoder_train, encoder_w2) + encoder_b2).eval()
-    encoder_test       = tf.sigmoid(tf.matmul(test_features, encoder_w1) + encoder_b1).eval()
-    test_features_new  = tf.sigmoid(tf.matmul(encoder_test, encoder_w2) + encoder_b2).eval()
-    
-    print('Middle layer representation size: ', train_features_new.shape, test_features_new.shape)
+    encoder_test = tf.sigmoid(tf.matmul(test_features, encoder_w1) + encoder_b1).eval()
+    test_features_new = tf.sigmoid(tf.matmul(encoder_test, encoder_w2) + encoder_b2).eval()
+
+    print("Middle layer representation size: ", train_features_new.shape, test_features_new.shape)
 
     # Input function for DNN regressor.
     def input_fn(features, label):
@@ -150,15 +150,16 @@ with tf.Session(graph=graph, config=config) as session:
 
         # TODO : 9. Train the regressor. (5%)
         # Hint : feed train features and label into input_fn(...)
-        regressor.fit(input_fn=lambda: input_fn(train_features_new, train_labels[:,index]), steps=num_steps)
+        regressor.fit(input_fn=lambda: input_fn(train_features_new, train_labels[:, index]), steps=num_steps)
 
         # TODO : 10. Evaluate the loss on test set. (5%)
         # Hint : feed test features and label into input_fn(...)
-        current_loss = regressor.evaluate(input_fn=lambda: input_fn(test_features_new, test_labels[:,index]), steps=1)['loss']
+        current_loss = regressor.evaluate(input_fn=lambda: input_fn(test_features_new, test_labels[:, index]), steps=1)[
+            "loss"
+        ]
 
-        print('Index %d MSE loss: %.4f' % (index, current_loss))
+        print("Index %d MSE loss: %.4f" % (index, current_loss))
         total_loss += current_loss
 
     # Print the sum of 2 dimensions' loss.
-    print('Total MSE loss: %.4f' % total_loss)
-
+    print("Total MSE loss: %.4f" % total_loss)

@@ -14,8 +14,7 @@ class ImageDataGenerator(object):
     Requires Tensorflow >= version 1.12rc0
     """
 
-    def __init__(self, txt_file, mode, batch_size, num_classes, shuffle=True,
-                 buffer_size=1000):
+    def __init__(self, txt_file, mode, batch_size, num_classes, shuffle=True, buffer_size=1000):
         """Create a new ImageDataGenerator.
 
         Recieves a path string to a text file, which consists of many lines,
@@ -60,10 +59,10 @@ class ImageDataGenerator(object):
         data = Dataset.from_tensor_slices((self.img_paths, self.labels))
 
         # distinguish between train/infer. when calling the parsing functions
-        if mode == 'training':
+        if mode == "training":
             data = data.map(self._parse_function_train)
 
-        elif mode == 'inference':
+        elif mode == "inference":
             data = data.map(self._parse_function_inference)
 
         else:
@@ -82,10 +81,10 @@ class ImageDataGenerator(object):
         """Read the content of the text file and store it into lists."""
         self.img_paths = []
         self.labels = []
-        with open(self.txt_file, 'r') as f:
+        with open(self.txt_file, "r") as f:
             lines = f.readlines()
             for line in lines:
-                items = line.split(' ')
+                items = line.split(" ")
                 self.img_paths.append(items[0])
                 self.labels.append(int(items[1]))
 

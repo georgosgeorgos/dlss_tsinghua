@@ -11,7 +11,6 @@ lib = ll("./init.so")
 
 
 class Config(object):
-
     def __init__(self):
         self.L1_flag = True
         self.hidden_size = 50
@@ -23,7 +22,6 @@ class Config(object):
 
 
 class TransEModel(object):
-
     def __init__(self, config):
 
         entity_total = config.entity
@@ -41,10 +39,16 @@ class TransEModel(object):
         self.neg_r = tf.placeholder(tf.int32, [None])
 
         with tf.name_scope("embedding"):
-            self.ent_embeddings = tf.get_variable(name="ent_embedding", shape=[
-                                                  entity_total, size], initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-            self.rel_embeddings = tf.get_variable(name="rel_embedding", shape=[
-                                                  relation_total, size], initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+            self.ent_embeddings = tf.get_variable(
+                name="ent_embedding",
+                shape=[entity_total, size],
+                initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+            )
+            self.rel_embeddings = tf.get_variable(
+                name="rel_embedding",
+                shape=[relation_total, size],
+                initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+            )
             pos_h_e = tf.nn.embedding_lookup(self.ent_embeddings, self.pos_h)
             pos_t_e = tf.nn.embedding_lookup(self.ent_embeddings, self.pos_t)
             pos_r_e = tf.nn.embedding_lookup(self.rel_embeddings, self.pos_r)
@@ -54,23 +58,23 @@ class TransEModel(object):
 
         pos = pos_h_e + pos_r_e - pos_t_e
         neg = neg_h_e + neg_r_e - neg_t_e
-        #pos = tf.Print(pos, [pos, tf.shape(pos), "pos"])
+        # pos = tf.Print(pos, [pos, tf.shape(pos), "pos"])
 
         if config.L1_flag:  # use L1-norm
             # TO DO
             energy = margin + tf.norm(pos, ord=1, axis=1) - tf.norm(neg, ord=1, axis=1)
-            energy = tf.maximum(energy, tf.constant(0.))
-            #energy = tf.Print(energy, [energy, tf.shape(energy), "energy"])
+            energy = tf.maximum(energy, tf.constant(0.0))
+            # energy = tf.Print(energy, [energy, tf.shape(energy), "energy"])
 
         else:  # use L2-norm
             energy = margin + tf.norm(pos, ord=2, axis=1) - tf.norm(neg, ord=2, axis=1)
-            energy = tf.maximum(energy, tf.constant(0.))
-                # TO DO
+            energy = tf.maximum(energy, tf.constant(0.0))
+            # TO DO
 
         with tf.name_scope("output"):
             # TO DO
             self.loss = tf.reduce_sum(energy)
-            #self.loss = tf.Print(self.loss, [self.loss, tf.shape(self.loss), "loss"])
+            # self.loss = tf.Print(self.loss, [self.loss, tf.shape(self.loss), "loss"])
 
 
 def main(_):
@@ -93,8 +97,7 @@ def main(_):
             global_step = tf.Variable(0, name="global_step", trainable=False)
             optimizer = tf.train.GradientDescentOptimizer(0.001)
             grads_and_vars = optimizer.compute_gradients(trainModel.loss)
-            train_op = optimizer.apply_gradients(
-                grads_and_vars, global_step=global_step)
+            train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
             saver = tf.train.Saver()
             sess.run(tf.initialize_all_variables())
 
@@ -105,10 +108,9 @@ def main(_):
                     trainModel.pos_r: pos_r_batch,
                     trainModel.neg_h: neg_h_batch,
                     trainModel.neg_t: neg_t_batch,
-                    trainModel.neg_r: neg_r_batch
+                    trainModel.neg_r: neg_r_batch,
                 }
-                _, step, loss = sess.run(
-                    [train_op, global_step, trainModel.loss], feed_dict)
+                _, step, loss = sess.run([train_op, global_step, trainModel.loss], feed_dict)
                 return loss
 
             ph = np.zeros(config.batch_size, dtype=np.int32)
@@ -118,23 +120,22 @@ def main(_):
             nt = np.zeros(config.batch_size, dtype=np.int32)
             nr = np.zeros(config.batch_size, dtype=np.int32)
 
-            ph_addr = ph.__array_interface__['data'][0]
-            pt_addr = pt.__array_interface__['data'][0]
-            pr_addr = pr.__array_interface__['data'][0]
-            nh_addr = nh.__array_interface__['data'][0]
-            nt_addr = nt.__array_interface__['data'][0]
-            nr_addr = nr.__array_interface__['data'][0]
+            ph_addr = ph.__array_interface__["data"][0]
+            pt_addr = pt.__array_interface__["data"][0]
+            pr_addr = pr.__array_interface__["data"][0]
+            nh_addr = nh.__array_interface__["data"][0]
+            nt_addr = nt.__array_interface__["data"][0]
+            nr_addr = nr.__array_interface__["data"][0]
 
             for times in range(config.trainTimes):
                 res = 0.0
                 for batch in range(config.nbatches):
-                    lib.getBatch(ph_addr, pt_addr, pr_addr, nh_addr,
-                                 nt_addr, nr_addr, config.batch_size)
+                    lib.getBatch(ph_addr, pt_addr, pr_addr, nh_addr, nt_addr, nr_addr, config.batch_size)
                     res += train_step(ph, pt, pr, nh, nt, nr)
                     current_step = tf.train.global_step(sess, global_step)
                 print times
                 print res
-            #saver.save(sess, 'model.vec')
+            # saver.save(sess, 'model.vec')
             # save the embeddings
             f = open("entity2vec.txt", "w")
             enb = trainModel.ent_embeddings.eval()
@@ -151,6 +152,7 @@ def main(_):
                     f.write("%f\t" % (j))
                 f.write("\n")
             f.close()
+
 
 if __name__ == "__main__":
     tf.app.run()

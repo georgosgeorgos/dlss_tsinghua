@@ -6,7 +6,7 @@ import numpy as np
 class SoftmaxCrossEntropy:
     def __init__(self):
         self.acc = 0
-        self.loss = np.zeros(1, dtype='f')
+        self.loss = np.zeros(1, dtype="f")
 
     def forward(self, logit, gt):
         self.Input = gt

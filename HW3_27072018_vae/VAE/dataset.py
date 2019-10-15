@@ -48,7 +48,7 @@ def to_one_hot(x, depth):
 
 
 def download_dataset(url, path):
-    print('Downloading data from %s' % url)
+    print("Downloading data from %s" % url)
     urllib.request.urlretrieve(url, path)
 
 
@@ -67,29 +67,24 @@ def load_mnist_realval(path, one_hot=True, dequantify=False):
         data_dir = os.path.dirname(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(data_dir)
-        download_dataset('http://www.iro.umontreal.ca/~lisa/deep/data/mnist'
-                         '/mnist.pkl.gz', path)
+        download_dataset("http://www.iro.umontreal.ca/~lisa/deep/data/mnist" "/mnist.pkl.gz", path)
 
-    f = gzip.open(path, 'rb')
+    f = gzip.open(path, "rb")
     if six.PY2:
         train_set, valid_set, test_set = pickle.load(f)
     else:
-        train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
+        train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
     f.close()
     x_train, t_train = train_set[0], train_set[1]
     x_valid, t_valid = valid_set[0], valid_set[1]
     x_test, t_test = test_set[0], test_set[1]
     if dequantify:
-        x_train += np.random.uniform(0, 1. / 256,
-                                     size=x_train.shape).astype('float32')
-        x_valid += np.random.uniform(0, 1. / 256,
-                                     size=x_valid.shape).astype('float32')
-        x_test += np.random.uniform(0, 1. / 256,
-                                    size=x_test.shape).astype('float32')
+        x_train += np.random.uniform(0, 1.0 / 256, size=x_train.shape).astype("float32")
+        x_valid += np.random.uniform(0, 1.0 / 256, size=x_valid.shape).astype("float32")
+        x_test += np.random.uniform(0, 1.0 / 256, size=x_test.shape).astype("float32")
     n_y = t_train.max() + 1
     t_transform = (lambda x: to_one_hot(x, n_y)) if one_hot else (lambda x: x)
-    return x_train, t_transform(t_train), x_valid, t_transform(t_valid), \
-        x_test, t_transform(t_test)
+    return x_train, t_transform(t_train), x_valid, t_transform(t_valid), x_test, t_transform(t_test)
 
 
 def load_binary_mnist_realval(path):
@@ -100,8 +95,7 @@ def load_binary_mnist_realval(path):
     :param path: Path to the dataset file.
     :return: The binary labeled MNIST dataset.
     """
-    x_train, t_train, x_valid, t_valid, x_test, t_test = \
-        load_mnist_realval(path, one_hot=False)
+    x_train, t_train, x_valid, t_valid, x_test, t_test = load_mnist_realval(path, one_hot=False)
 
     t_train = (t_train == 1).astype(np.float32)
     t_valid = (t_valid == 1).astype(np.float32)
@@ -122,9 +116,8 @@ def load_mnist_semi_supervised(path, one_hot=True, seed=123456):
     :return: The MNIST dataset for semi-supervised learning.
     """
     rng = np.random.RandomState(seed=seed)
-    x_train, t_train, x_valid, t_valid, x_test, t_test = \
-        load_mnist_realval(path, one_hot=False)
-    x_train = np.vstack([x_train, x_valid]).astype('float32')
+    x_train, t_train, x_valid, t_valid, x_test, t_test = load_mnist_realval(path, one_hot=False)
+    x_train = np.vstack([x_train, x_valid]).astype("float32")
     t_train = np.hstack([t_train, t_valid])
     x_train_by_class = []
     t_train_by_class = []
@@ -144,8 +137,7 @@ def load_mnist_semi_supervised(path, one_hot=True, seed=123456):
     x_unlabeled = x_train
     np.random.shuffle(x_unlabeled)
     t_transform = (lambda x: to_one_hot(x, 10)) if one_hot else (lambda x: x)
-    return x_labeled, t_transform(t_labeled), x_unlabeled, x_test, \
-        t_transform(t_test)
+    return x_labeled, t_transform(t_labeled), x_unlabeled, x_test, t_transform(t_test)
 
 
 def load_cifar10(path, normalize=True, dequantify=False, one_hot=True):
@@ -164,43 +156,41 @@ def load_cifar10(path, normalize=True, dequantify=False, one_hot=True):
         data_dir = os.path.dirname(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(data_dir)
-        download_dataset(
-            'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz', path)
+        download_dataset("http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz", path)
 
     data_dir = os.path.dirname(path)
-    batch_dir = os.path.join(data_dir, 'cifar-10-batches-py')
-    if not os.path.isfile(os.path.join(batch_dir, 'data_batch_5')):
+    batch_dir = os.path.join(data_dir, "cifar-10-batches-py")
+    if not os.path.isfile(os.path.join(batch_dir, "data_batch_5")):
         with tarfile.open(path) as tar:
             tar.extractall(data_dir)
 
     train_x, train_y = [], []
     for i in range(1, 6):
-        batch_file = os.path.join(batch_dir, 'data_batch_' + str(i))
-        with open(batch_file, 'rb') as f:
+        batch_file = os.path.join(batch_dir, "data_batch_" + str(i))
+        with open(batch_file, "rb") as f:
             if six.PY2:
                 data = pickle.load(f)
             else:
-                data = pickle.load(f, encoding='latin1')
-            train_x.append(data['data'])
-            train_y.append(data['labels'])
+                data = pickle.load(f, encoding="latin1")
+            train_x.append(data["data"])
+            train_y.append(data["labels"])
     train_x = np.vstack(train_x)
     train_y = np.hstack(train_y)
 
-    test_batch_file = os.path.join(batch_dir, 'test_batch')
-    with open(test_batch_file, 'rb') as f:
+    test_batch_file = os.path.join(batch_dir, "test_batch")
+    with open(test_batch_file, "rb") as f:
         if six.PY2:
             data = pickle.load(f)
         else:
-            data = pickle.load(f, encoding='latin1')
-        test_x = data['data']
-        test_y = np.asarray(data['labels'])
+            data = pickle.load(f, encoding="latin1")
+        test_x = data["data"]
+        test_y = np.asarray(data["labels"])
 
-    train_x = train_x.astype('float32')
-    test_x = test_x.astype('float32')
+    train_x = train_x.astype("float32")
+    test_x = test_x.astype("float32")
     if dequantify:
-        train_x += np.random.uniform(0, 1,
-                                     size=train_x.shape).astype('float32')
-        test_x += np.random.uniform(0, 1, size=test_x.shape).astype('float32')
+        train_x += np.random.uniform(0, 1, size=train_x.shape).astype("float32")
+        test_x += np.random.uniform(0, 1, size=test_x.shape).astype("float32")
     if normalize:
         train_x = train_x / 256
         test_x = test_x / 256
@@ -211,8 +201,7 @@ def load_cifar10(path, normalize=True, dequantify=False, one_hot=True):
     return train_x, t_transform(train_y), test_x, t_transform(test_y)
 
 
-def load_cifar10_semi_supervised(path, normalize=True, dequantify=False,
-                                 one_hot=True, seed=123456):
+def load_cifar10_semi_supervised(path, normalize=True, dequantify=False, one_hot=True, seed=123456):
     """
     Select 400 labeled data for each class and use all the other training data
     as unlabeled.
@@ -227,8 +216,7 @@ def load_cifar10_semi_supervised(path, normalize=True, dequantify=False,
     :return: The cifar10 dataset for semi-supervised learning.
     """
     rng = np.random.RandomState(seed=seed)
-    x_train, t_train, x_test, t_test = load_cifar10(
-        path, normalize=normalize, dequantify=dequantify, one_hot=False)
+    x_train, t_train, x_test, t_test = load_cifar10(path, normalize=normalize, dequantify=dequantify, one_hot=False)
     x_train_by_class = []
     t_train_by_class = []
     for i in range(10):
@@ -247,8 +235,7 @@ def load_cifar10_semi_supervised(path, normalize=True, dequantify=False,
     x_unlabeled = x_train
     np.random.shuffle(x_unlabeled)
     t_transform = (lambda x: to_one_hot(x, 10)) if one_hot else (lambda x: x)
-    return x_labeled, t_transform(t_labeled), x_unlabeled, x_test, \
-        t_transform(t_test)
+    return x_labeled, t_transform(t_labeled), x_unlabeled, x_test, t_transform(t_test)
 
 
 def load_uci_german_credits(path, n_train):
@@ -256,9 +243,9 @@ def load_uci_german_credits(path, n_train):
         data_dir = os.path.dirname(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(data_dir)
-        download_dataset('https://archive.ics.uci.edu/ml/'
-                         'machine-learning-databases/statlog/'
-                         'german/german.data-numeric', path)
+        download_dataset(
+            "https://archive.ics.uci.edu/ml/" "machine-learning-databases/statlog/" "german/german.data-numeric", path
+        )
 
     n_dims = 24
     data = np.loadtxt(path)
@@ -276,17 +263,14 @@ def load_uci_boston_housing(path, dtype=np.float32):
         data_dir = os.path.dirname(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(data_dir)
-        download_dataset('http://archive.ics.uci.edu/ml/'
-                         'machine-learning-databases/housing/housing.data',
-                         path)
+        download_dataset("http://archive.ics.uci.edu/ml/" "machine-learning-databases/housing/housing.data", path)
 
     data = np.loadtxt(path)
     data = data.astype(dtype)
-    permutation = np.random.choice(np.arange(data.shape[0]),
-                                   data.shape[0], replace=False)
+    permutation = np.random.choice(np.arange(data.shape[0]), data.shape[0], replace=False)
     size_train = int(np.round(data.shape[0] * 0.8))
     size_test = int(np.round(data.shape[0] * 0.9))
-    index_train = permutation[0: size_train]
+    index_train = permutation[0:size_train]
     index_test = permutation[size_train:size_test]
     index_val = permutation[size_test:]
 
@@ -312,16 +296,14 @@ def load_uci_bow(data_name, data_path):
     if not os.path.exists(os.path.dirname(data_path)):
         os.makedirs(data_dir)
 
-    uci_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases' \
-              '/bag-of-words/'
-    vector_file = '{}.vector'.format(data_path)
-    vocab_file = '{}.vocab'.format(data_path)
-    numpy_file = '{}.npy'.format(data_path)
+    uci_url = "https://archive.ics.uci.edu/ml/machine-learning-databases" "/bag-of-words/"
+    vector_file = "{}.vector".format(data_path)
+    vocab_file = "{}.vocab".format(data_path)
+    numpy_file = "{}.npy".format(data_path)
 
     if not os.path.isfile(numpy_file):
-        download_dataset('{}docword.{}.txt.gz'.format(uci_url, data_name),
-                         vector_file)
-        with gzip.open(vector_file, 'rb') as f:
+        download_dataset("{}docword.{}.txt.gz".format(uci_url, data_name), vector_file)
+        with gzip.open(vector_file, "rb") as f:
             D = int(f.readline())
             V = int(f.readline())
             T = int(f.readline())
@@ -329,7 +311,7 @@ def load_uci_bow(data_name, data_path):
             data = np.zeros((D, V), dtype=np.float32)
             for i in range(T):
                 d, v, c = f.readline().split()
-                data[int(d)-1, int(v)-1] += int(c)
+                data[int(d) - 1, int(v) - 1] += int(c)
 
         np.save(numpy_file, data)
         os.remove(vector_file)
@@ -337,8 +319,7 @@ def load_uci_bow(data_name, data_path):
         data = np.load(numpy_file)
 
     if not os.path.isfile(vocab_file):
-        download_dataset('{}vocab.{}.txt'.format(uci_url, data_name),
-                         vocab_file)
+        download_dataset("{}vocab.{}.txt".format(uci_url, data_name), vocab_file)
 
     with open(vocab_file) as vf:
         vocab = [v.strip() for v in vf.readlines()]
@@ -361,16 +342,14 @@ def load_uci_bow_sparse(data_name, data_path):
     if not os.path.exists(os.path.dirname(data_path)):
         os.makedirs(data_dir)
 
-    uci_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases' \
-              '/bag-of-words/'
-    vector_file = '{}.vector'.format(data_path)
-    vocab_file = '{}.vocab'.format(data_path)
+    uci_url = "https://archive.ics.uci.edu/ml/machine-learning-databases" "/bag-of-words/"
+    vector_file = "{}.vector".format(data_path)
+    vocab_file = "{}.vocab".format(data_path)
 
     if not os.path.isfile(vector_file):
-        download_dataset('{}docword.{}.txt.gz'.format(uci_url, data_name),
-                         vector_file)
+        download_dataset("{}docword.{}.txt.gz".format(uci_url, data_name), vector_file)
 
-    with gzip.open(vector_file, 'rb') as f:
+    with gzip.open(vector_file, "rb") as f:
         D = int(f.readline())
         V = int(f.readline())
         T = int(f.readline())
@@ -381,8 +360,7 @@ def load_uci_bow_sparse(data_name, data_path):
             data[int(d) - 1].append((int(v) - 1, int(c)))
 
     if not os.path.isfile(vocab_file):
-        download_dataset('{}vocab.{}.txt'.format(uci_url, data_name),
-                         vocab_file)
+        download_dataset("{}vocab.{}.txt".format(uci_url, data_name), vocab_file)
 
     with open(vocab_file) as vf:
         vocab = [v.strip() for v in vf.readlines()]

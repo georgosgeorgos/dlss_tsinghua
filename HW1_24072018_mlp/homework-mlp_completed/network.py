@@ -1,11 +1,9 @@
-
-
 class Network:
     def __init__(self):
         self.layer_list = []
         self.num_layer = 0
 
-    def add(self,layer):
+    def add(self, layer):
         self.num_layer = self.num_layer + 1
         self.layer_list.append(layer)
 
